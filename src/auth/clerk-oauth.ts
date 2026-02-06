@@ -10,7 +10,7 @@
 
 import open from "open";
 import type { Session, OAuthDeviceCodeResponse, OAuthTokenResponse } from "../types.js";
-import { saveSession, loadSession } from "./session.js";
+import { saveSession, loadSession, clearSession } from "./session.js";
 import { AUTH_ENDPOINTS, MCP_CLIENT_ID, ENVIRONMENT } from "../config.js";
 
 // =============================================================================
@@ -241,7 +241,6 @@ function sleep(ms: number): Promise<void> {
  * Logout and clear session
  */
 export function logout(): void {
-  const { clearSession } = require("./session.js");
   clearSession();
   console.error("👋 Logged out successfully");
 }

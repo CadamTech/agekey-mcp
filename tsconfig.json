@@ -1,5 +1,4 @@
 {
-  "extends": "@family-connect/config/typescript/library",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",

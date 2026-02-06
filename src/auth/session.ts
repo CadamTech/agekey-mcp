@@ -6,7 +6,7 @@
  * @values TEEN - Secure token storage with proper file permissions
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync, unlinkSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { Session } from "../types.js";
@@ -84,7 +84,6 @@ export function clearSession(): void {
     if (existsSync(SESSION_FILE)) {
       writeFileSync(SESSION_FILE, "", { mode: 0o600 });
       // Delete the file
-      const { unlinkSync } = require("node:fs");
       unlinkSync(SESSION_FILE);
     }
   } catch {

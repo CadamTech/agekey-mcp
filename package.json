@@ -1,0 +1,54 @@
+{
+  "name": "@agekey/mcp-server",
+  "version": "0.1.0",
+  "description": "AgeKey MCP Server - Manage AgeKey applications from your IDE",
+  "author": "AgeKey <support@agekey.org>",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "agekey-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build && npm run test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "open": "^10.0.0"
+  },
+  "devDependencies": {
+    "@family-connect/config": "workspace:*",
+    "@types/node": "^20.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.3",
+    "vitest": "^2.0.0"
+  },
+  "keywords": [
+    "agekey",
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "claude",
+    "cursor"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

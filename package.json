@@ -30,11 +30,13 @@
     "open": "^10.0.0"
   },
   "devDependencies": {
-    "@family-connect/config": "workspace:*",
+    "@eslint/js": "^9.0.0",
     "@types/node": "^20.0.0",
     "@vitest/coverage-v8": "^2.0.0",
+    "eslint": "^9.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.3.3",
+    "typescript-eslint": "^8.0.0",
     "vitest": "^2.0.0"
   },
   "keywords": [

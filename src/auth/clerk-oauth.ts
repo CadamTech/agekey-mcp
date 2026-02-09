@@ -211,22 +211,6 @@ async function createSession(token: OAuthTokenResponse): Promise<Session> {
 }
 
 /**
- * Verify an existing session is still valid
- */
-async function verifySession(accessToken: string): Promise<boolean> {
-  try {
-    const response = await fetch(AUTH_ENDPOINTS.verify, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Sleep for a given number of milliseconds
  */
 function sleep(ms: number): Promise<void> {

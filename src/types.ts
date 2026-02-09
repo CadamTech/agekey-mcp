@@ -47,9 +47,8 @@ export interface Organization {
   name: string;
   slug: string;
   role: OrgRole;
-  plan: "free" | "pro" | "enterprise";
   applicationCount: number;
-  createdAt: string;
+  createdAt?: string;
 }
 
 // =============================================================================

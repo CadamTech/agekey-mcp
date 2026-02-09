@@ -19,7 +19,6 @@ export interface ListOrganizationsResult {
     name: string;
     slug: string;
     role: string;
-    plan: string;
     applicationCount: number;
   }>;
 }
@@ -45,7 +44,6 @@ export async function listOrganizations(): Promise<ToolResult<ListOrganizationsR
         name: org.name,
         slug: org.slug,
         role: org.role,
-        plan: org.plan,
         applicationCount: org.applicationCount,
       })),
     },

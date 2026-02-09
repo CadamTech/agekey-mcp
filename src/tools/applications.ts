@@ -23,11 +23,8 @@ export interface ListApplicationsResult {
     id: string;
     name: string;
     description?: string;
-    createdAt: string;
     testAppId: string;
     hasLiveCredentials: boolean;
-    testRedirectUris: string[];
-    liveRedirectUris: string[];
   }>;
 }
 
@@ -57,11 +54,8 @@ export async function listApplications(
         id: app.id,
         name: app.name,
         description: undefined,
-        createdAt: "",
         testAppId: app.testAppId,
         hasLiveCredentials: !!app.liveAppId,
-        testRedirectUris: [] as string[],
-        liveRedirectUris: [] as string[],
       })),
     },
   };
@@ -73,13 +67,13 @@ export async function listApplications(
 
 export interface GetApplicationInput {
   appId: string;
+  orgId: string;
 }
 
 export interface GetApplicationResult {
   id: string;
   name: string;
   description?: string;
-  createdAt: string;
   updatedAt: string;
   testCredentials: {
     appId: string;
@@ -98,7 +92,7 @@ export interface GetApplicationResult {
 export async function getApplication(
   input: GetApplicationInput
 ): Promise<ToolResult<GetApplicationResult>> {
-  const response = await apiClient.getApplication(input.appId);
+  const response = await apiClient.getApplication(input.appId, input.orgId);
 
   if (!response.success || !response.data) {
     return {
@@ -115,7 +109,6 @@ export async function getApplication(
       id: app.id,
       name: app.name,
       description: app.description,
-      createdAt: app.createdAt,
       updatedAt: app.updatedAt,
       testCredentials: {
         appId: app.testCredentials.appId,
@@ -221,8 +214,12 @@ export const applicationTools = {
           type: "string",
           description: "The application ID",
         },
+        orgId: {
+          type: "string",
+          description: "The organization ID the application belongs to",
+        },
       },
-      required: ["appId"],
+      required: ["appId", "orgId"],
     },
     handler: getApplication,
   },

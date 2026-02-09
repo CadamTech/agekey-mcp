@@ -139,10 +139,13 @@ export async function listApplications(
 }
 
 /**
- * Get a single application by ID
+ * Get a single application by ID (orgId required by API)
  */
-export async function getApplication(appId: string): Promise<ApiResponse<Application>> {
-  return request<Application>(`/mcp/apps/${appId}`);
+export async function getApplication(
+  appId: string,
+  orgId: string
+): Promise<ApiResponse<Application>> {
+  return request<Application>(`/mcp/apps/${appId}?orgId=${encodeURIComponent(orgId)}`);
 }
 
 /**

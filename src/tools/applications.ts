@@ -43,10 +43,11 @@ export async function listApplications(
     };
   }
 
+  const list = Array.isArray(response.data) ? response.data : [];
   return {
     success: true,
     data: {
-      applications: response.data.map((app: ApplicationListItem) => ({
+      applications: list.map((app: ApplicationListItem) => ({
         id: app.id,
         name: app.name,
         description: undefined,

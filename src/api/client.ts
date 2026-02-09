@@ -119,18 +119,23 @@ export async function getOrganization(orgId: string): Promise<ApiResponse<Organi
 
 /**
  * List all applications in an organization.
- * API returns { applications: ApplicationListItem[] }; we unwrap to match list_organizations behavior.
+ * API returns { applications: ApplicationListItem[] }; we unwrap to an array.
  */
 export async function listApplications(
   orgId: string
 ): Promise<ApiResponse<ApplicationListItem[]>> {
-  const response = await request<{ applications: ApplicationListItem[] }>(
+  const response = await request<{ applications?: ApplicationListItem[] }>(
     `/mcp/orgs/${orgId}/apps`
   );
-  if (!response.success || !response.data) {
+  if (!response.success || response.data == null) {
     return { success: false, error: response.error };
   }
-  return { success: true, data: response.data.applications };
+  const raw = response.data;
+  const list = Array.isArray(raw) ? raw : raw.applications;
+  if (!Array.isArray(list)) {
+    return { success: false, error: { code: "INVALID_RESPONSE", message: "Applications list missing" } };
+  }
+  return { success: true, data: list };
 }
 
 /**

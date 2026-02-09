@@ -36,18 +36,24 @@ export async function listApplications(
 ): Promise<ToolResult<ListApplicationsResult>> {
   const response = await apiClient.listApplications(input.orgId);
 
-  if (!response.success || !response.data) {
+  if (!response.success) {
     return {
       success: false,
       error: response.error?.message || "Failed to list applications",
     };
   }
 
-  const list = Array.isArray(response.data) ? response.data : [];
+  const raw = response.data;
+  const list = Array.isArray(raw)
+    ? raw
+    : (raw && typeof raw === "object" && Array.isArray((raw as { applications?: unknown }).applications)
+        ? (raw as { applications: ApplicationListItem[] }).applications
+        : []);
+  const safeList = Array.isArray(list) ? list : [];
   return {
     success: true,
     data: {
-      applications: list.map((app: ApplicationListItem) => ({
+      applications: safeList.map((app: ApplicationListItem) => ({
         id: app.id,
         name: app.name,
         description: undefined,

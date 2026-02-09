@@ -8,6 +8,7 @@
  */
 
 import { getAccessToken, authenticate } from "../auth/index.js";
+import { clearSession } from "../auth/session.js";
 import type {
   ApiResponse,
   Organization,
@@ -48,9 +49,8 @@ async function request<T>(
   });
 
   if (!response.ok) {
-    // Handle specific error cases
     if (response.status === 401) {
-      // Token expired, re-authenticate
+      clearSession();
       const session = await authenticate();
       // Retry the request with new token
       const retryResponse = await fetch(url, {

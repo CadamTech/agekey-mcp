@@ -1,7 +1,8 @@
 /**
  * Session Management
  *
- * Handles local storage of authentication tokens in ~/.agekey/session.json
+ * Handles local storage of authentication tokens in ~/.agekey/session.json.
+ * Uses in-memory cache so we don't re-read disk or re-verify on every request.
  *
  * @values TEEN - Secure token storage with proper file permissions
  */
@@ -18,6 +19,9 @@ import type { Session } from "../types.js";
 const AGEKEY_DIR = join(homedir(), ".agekey");
 const SESSION_FILE = join(AGEKEY_DIR, "session.json");
 
+// In-memory cache so MCP doesn't hit disk or re-init auth on every request
+let sessionCache: Session | null = null;
+
 // =============================================================================
 // Session Management
 // =============================================================================
@@ -32,10 +36,17 @@ function ensureAgekeyDir(): void {
 }
 
 /**
- * Load session from disk
- * Returns null if no session exists or session is invalid
+ * Load session from disk (and populate cache).
+ * Returns null if no session exists or session is invalid/expired.
  */
 export function loadSession(): Session | null {
+  if (sessionCache !== null) {
+    if (new Date(sessionCache.expiresAt) >= new Date()) {
+      return sessionCache;
+    }
+    sessionCache = null;
+  }
+
   try {
     if (!existsSync(SESSION_FILE)) {
       return null;
@@ -44,23 +55,21 @@ export function loadSession(): Session | null {
     const content = readFileSync(SESSION_FILE, "utf-8");
     const session = JSON.parse(content) as Session;
 
-    // Check if session is expired
     if (new Date(session.expiresAt) < new Date()) {
-      // Session expired, delete it
       clearSession();
       return null;
     }
 
+    sessionCache = session;
     return session;
   } catch {
-    // Invalid session file, clear it
     clearSession();
     return null;
   }
 }
 
 /**
- * Save session to disk with secure permissions
+ * Save session to disk with secure permissions and update in-memory cache
  */
 export function saveSession(session: Session): void {
   ensureAgekeyDir();
@@ -68,22 +77,23 @@ export function saveSession(session: Session): void {
   const content = JSON.stringify(session, null, 2);
   writeFileSync(SESSION_FILE, content, { mode: 0o600 });
 
-  // Ensure file permissions are correct (600 = owner read/write only)
   try {
     chmodSync(SESSION_FILE, 0o600);
   } catch {
     // chmod may fail on some systems, ignore
   }
+
+  sessionCache = session;
 }
 
 /**
- * Clear session from disk
+ * Clear session from disk and in-memory cache
  */
 export function clearSession(): void {
+  sessionCache = null;
   try {
     if (existsSync(SESSION_FILE)) {
       writeFileSync(SESSION_FILE, "", { mode: 0o600 });
-      // Delete the file
       unlinkSync(SESSION_FILE);
     }
   } catch {

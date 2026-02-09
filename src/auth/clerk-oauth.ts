@@ -25,14 +25,10 @@ import { AUTH_ENDPOINTS, MCP_CLIENT_ID, ENVIRONMENT } from "../config.js";
  * 3. Poll for token until user completes auth
  */
 export async function authenticate(): Promise<Session> {
-  // Check if already authenticated
+  // Use cached/disk session if present and not expired (no network call per request)
   const existingSession = loadSession();
   if (existingSession) {
-    // Verify the session is still valid
-    const isValid = await verifySession(existingSession.accessToken);
-    if (isValid) {
-      return existingSession;
-    }
+    return existingSession;
   }
 
   // Step 1: Request device code

@@ -8,7 +8,7 @@
  */
 
 import { apiClient } from "../api/client.js";
-import type { ToolResult, Application } from "../types.js";
+import type { ToolResult, ApplicationListItem } from "../types.js";
 
 // =============================================================================
 // List Applications
@@ -46,15 +46,15 @@ export async function listApplications(
   return {
     success: true,
     data: {
-      applications: response.data.map((app: Application) => ({
+      applications: response.data.map((app: ApplicationListItem) => ({
         id: app.id,
         name: app.name,
-        description: app.description,
-        createdAt: app.createdAt,
-        testAppId: app.testCredentials.appId,
-        hasLiveCredentials: !!app.liveCredentials,
-        testRedirectUris: app.redirectUris.test,
-        liveRedirectUris: app.redirectUris.live,
+        description: undefined,
+        createdAt: "",
+        testAppId: app.testAppId,
+        hasLiveCredentials: !!app.liveAppId,
+        testRedirectUris: [] as string[],
+        liveRedirectUris: [] as string[],
       })),
     },
   };

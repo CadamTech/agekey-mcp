@@ -11,7 +11,6 @@ AgeKey MCP Server - Manage AgeKey applications directly from your AI IDE.
 - 🔗 **Redirect URIs** — Add and remove callback URLs
 - 🛡️ **RBAC** — Role-based access control (Member → test, Admin → live)
 - 🔧 **Utilities** — JWT decoder, error explainer, code samples
-- 🌍 **Multi-Environment** — Local, staging, and production support
 
 ## Installation
 
@@ -55,93 +54,7 @@ On first use, the MCP server will:
 
 No manual token management needed!
 
-## Environment Configuration
-
-The MCP server supports multiple environments for development and testing.
-
-### Quick Reference
-
-| Environment | How to Set | Portal URL |
-|-------------|------------|------------|
-| **Production** | Default (no config needed) | `https://portal.agekey.org` |
-| **Staging** | `AGEKEY_ENV=staging` | `https://portal.staging.agekey.org` |
-| **Dev** | `AGEKEY_ENV=dev` | `https://portal.dev.agekey.org` |
-| **Local** | `AGEKEY_ENV=local` | `http://localhost:3005` |
-| **Custom** | `AGEKEY_PORTAL_URL=<url>` | Your custom URL |
-
-### Using with Local Development
-
-To test against a local AgeKey Developer Portal:
-
-**1. Cursor IDE (`.cursor/mcp.json`):**
-
-```json
-{
-  "mcpServers": {
-    "agekey": {
-      "command": "npx",
-      "args": ["-y", "@agekey/mcp-server"],
-      "env": {
-        "AGEKEY_ENV": "local"
-      }
-    }
-  }
-}
-```
-
-**2. Or run locally with environment:**
-
-```bash
-# Using preset (defaults to localhost:3005)
-AGEKEY_ENV=local node dist/index.js
-
-# Override port if your portal runs on a different port
-AGEKEY_ENV=local AGEKEY_PORTAL_URL=http://localhost:3001 node dist/index.js
-```
-
-### Overriding Preset URLs
-
-You can always override the portal URL while keeping the environment preset:
-
-```bash
-# Use local preset but different port
-AGEKEY_ENV=local AGEKEY_PORTAL_URL=http://localhost:4000 npx @agekey/mcp-server
-
-# Use staging but point to a feature branch deployment
-AGEKEY_ENV=staging AGEKEY_PORTAL_URL=https://feature-branch.agekey.org npx @agekey/mcp-server
-```
-
-### Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `AGEKEY_ENV` | `production` | Environment preset: `local`, `dev`, `staging`, `production` |
-| `AGEKEY_PORTAL_URL` | (from preset) | Custom portal URL (overrides preset) |
-
-### Environment Presets
-
-| Preset | Portal URL |
-|--------|------------|
-| `production` | `https://portal.agekey.org` |
-| `staging` | `https://portal.staging.agekey.org` |
-| `dev` | `https://portal.dev.agekey.org` |
-| `local` | `http://localhost:3005` |
-
-> **Note:** The AgeKey verification API URLs (test/live) are returned by the portal with credentials—the MCP server doesn't need to know about them directly.
-
-### Startup Feedback
-
-When running in non-production environments, the MCP server logs the active configuration:
-
-```
-🔧 AgeKey MCP Server Configuration
-   Environment: LOCAL
-   Portal URL:  http://localhost:3001
-   API URL:     http://localhost:3001/api
-
-   ⚠️  Running against LOCAL instance
-   Make sure the dev portal is running on http://localhost:3001
-```
+The server connects to the production AgeKey Developer Portal by default. Environment configuration (staging, dev, local) is for internal use only and is not documented here.
 
 ## Available Tools
 
@@ -234,27 +147,8 @@ pnpm install
 # Build
 pnpm build
 
-# Run locally against local portal
-AGEKEY_ENV=local node dist/index.js
-
-# Run locally against production
+# Run (connects to production portal)
 node dist/index.js
-```
-
-### Testing Different Environments
-
-```bash
-# Local development (portal on localhost:3001)
-AGEKEY_ENV=local pnpm start
-
-# Staging
-AGEKEY_ENV=staging pnpm start
-
-# Custom endpoint
-AGEKEY_PORTAL_URL=https://my-custom-portal.com pnpm start
-
-# Production (default)
-pnpm start
 ```
 
 ## License

@@ -8,7 +8,13 @@
  */
 
 import { getAccessToken, authenticate } from "../auth/index.js";
-import type { ApiResponse, Organization, Application, Credentials } from "../types.js";
+import type {
+  ApiResponse,
+  Organization,
+  Application,
+  ApplicationListItem,
+  Credentials,
+} from "../types.js";
 import { API_URL } from "../config.js";
 
 // =============================================================================
@@ -112,10 +118,19 @@ export async function getOrganization(orgId: string): Promise<ApiResponse<Organi
 // =============================================================================
 
 /**
- * List all applications in an organization
+ * List all applications in an organization.
+ * API returns { applications: ApplicationListItem[] }; we unwrap to match list_organizations behavior.
  */
-export async function listApplications(orgId: string): Promise<ApiResponse<Application[]>> {
-  return request<Application[]>(`/mcp/orgs/${orgId}/apps`);
+export async function listApplications(
+  orgId: string
+): Promise<ApiResponse<ApplicationListItem[]>> {
+  const response = await request<{ applications: ApplicationListItem[] }>(
+    `/mcp/orgs/${orgId}/apps`
+  );
+  if (!response.success || !response.data) {
+    return { success: false, error: response.error };
+  }
+  return { success: true, data: response.data.applications };
 }
 
 /**

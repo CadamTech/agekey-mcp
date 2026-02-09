@@ -76,6 +76,15 @@ export interface Application {
   };
 }
 
+/** Minimal shape returned by GET /mcp/orgs/:orgId/apps (list applications) */
+export interface ApplicationListItem {
+  id: string;
+  name: string;
+  testAppId: string;
+  liveAppId: string;
+  status: "active" | "archived";
+}
+
 // =============================================================================
 // API Response Types
 // =============================================================================

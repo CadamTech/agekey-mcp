@@ -1,6 +1,6 @@
 {
   "name": "@openage-agekey/mcp-server",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "AgeKey MCP Server - Manage AgeKey applications from your IDE",
   "author": "AgeKey <support@agekey.org>",
   "license": "MIT",

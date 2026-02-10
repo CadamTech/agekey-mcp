@@ -6,8 +6,11 @@
  * @values TEEN - Live mode operations require Admin+ role and confirmation
  */
 
+import { z } from "zod";
 import { apiClient } from "../api/client.js";
 import type { ToolResult } from "../types.js";
+
+const envSchema = z.enum(["test", "live"]);
 
 // =============================================================================
 // Validation
@@ -56,6 +59,7 @@ export interface AddRedirectUriInput {
   appId: string;
   uri: string;
   environment: "test" | "live";
+  orgId: string;
   confirmation?: string;
 }
 
@@ -96,7 +100,7 @@ To proceed, confirm with: "${ADD_LIVE_CONFIRMATION}"`,
     };
   }
 
-  const response = await apiClient.addRedirectUri(input.appId, input.uri, input.environment);
+  const response = await apiClient.addRedirectUri(input.appId, input.uri, input.environment, input.orgId);
 
   if (!response.success || !response.data) {
     return {
@@ -122,6 +126,7 @@ export interface RemoveRedirectUriInput {
   appId: string;
   uri: string;
   environment: "test" | "live";
+  orgId: string;
   confirmation?: string;
 }
 
@@ -155,7 +160,7 @@ To proceed, confirm with: "${REMOVE_LIVE_CONFIRMATION}"`,
     };
   }
 
-  const response = await apiClient.removeRedirectUri(input.appId, input.uri, input.environment);
+  const response = await apiClient.removeRedirectUri(input.appId, input.uri, input.environment, input.orgId);
 
   if (!response.success || !response.data) {
     return {
@@ -184,29 +189,13 @@ export const redirectUriTools = {
 
 For TEST mode: Any valid URL (localhost allowed). Requires Member role.
 For LIVE mode: Must be HTTPS (no localhost). Requires Admin role AND confirmation.`,
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        appId: {
-          type: "string",
-          description: "The application ID",
-        },
-        uri: {
-          type: "string",
-          description: "The redirect URI to add (e.g., 'http://localhost:3000/callback' or 'https://myapp.com/callback')",
-        },
-        environment: {
-          type: "string",
-          enum: ["test", "live"],
-          description: "Which environment to add the URI to",
-        },
-        confirmation: {
-          type: "string",
-          description: "Confirmation phrase (required for live mode). Use 'ADD LIVE URI'.",
-        },
-      },
-      required: ["appId", "uri", "environment"],
-    },
+    inputSchema: z.object({
+      appId: z.string().describe("The application ID"),
+      uri: z.string().describe("The redirect URI to add (e.g., 'http://localhost:3000/callback' or 'https://myapp.com/callback')"),
+      environment: envSchema.describe("Which environment to add the URI to"),
+      orgId: z.string().describe("The organization ID that owns the application"),
+      confirmation: z.string().optional().describe("Confirmation phrase (required for live mode). Use 'ADD LIVE URI'."),
+    }),
     handler: addRedirectUri,
   },
 
@@ -218,29 +207,13 @@ For TEST mode: Requires Member role.
 For LIVE mode: Requires Admin role AND confirmation.
 
 ⚠️ WARNING: Removing a live URI will immediately break any production integration using it!`,
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        appId: {
-          type: "string",
-          description: "The application ID",
-        },
-        uri: {
-          type: "string",
-          description: "The redirect URI to remove",
-        },
-        environment: {
-          type: "string",
-          enum: ["test", "live"],
-          description: "Which environment to remove the URI from",
-        },
-        confirmation: {
-          type: "string",
-          description: "Confirmation phrase (required for live mode). Use 'REMOVE LIVE URI'.",
-        },
-      },
-      required: ["appId", "uri", "environment"],
-    },
+    inputSchema: z.object({
+      appId: z.string().describe("The application ID"),
+      uri: z.string().describe("The redirect URI to remove"),
+      environment: envSchema.describe("Which environment to remove the URI from"),
+      orgId: z.string().describe("The organization ID that owns the application"),
+      confirmation: z.string().optional().describe("Confirmation phrase (required for live mode). Use 'REMOVE LIVE URI'."),
+    }),
     handler: removeRedirectUri,
   },
 };

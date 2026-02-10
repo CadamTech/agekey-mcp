@@ -15,6 +15,7 @@ import type {
   Application,
   ApplicationListItem,
   Credentials,
+  RotateCredentialsResponse,
 } from "../types.js";
 import { API_URL } from "../config.js";
 
@@ -64,11 +65,14 @@ async function request<T>(
 
       if (!retryResponse.ok) {
         const error = await retryResponse.json().catch(() => ({ message: retryResponse.statusText }));
+        const retryMessage =
+          (error && (typeof error.error === "string" ? error.error : error.message)) ||
+          retryResponse.statusText;
         return {
           success: false,
           error: {
             code: `HTTP_${retryResponse.status}`,
-            message: error.message || retryResponse.statusText,
+            message: retryMessage,
           },
         };
       }
@@ -78,11 +82,15 @@ async function request<T>(
     }
 
     const error = await response.json().catch(() => ({ message: response.statusText }));
+    // API may return { error: "..." } or { message: "..." }
+    const message =
+      (error && (typeof error.error === "string" ? error.error : error.message)) ||
+      response.statusText;
     return {
       success: false,
       error: {
         code: `HTTP_${response.status}`,
-        message: error.message || response.statusText,
+        message,
       },
     };
   }
@@ -167,23 +175,27 @@ export async function createApplication(
 // =============================================================================
 
 /**
- * Get credentials for an application
+ * Get credentials for an application (orgId required by API)
  */
 export async function getCredentials(
   appId: string,
-  environment: "test" | "live"
+  environment: "test" | "live",
+  orgId: string
 ): Promise<ApiResponse<Credentials>> {
-  return request<Credentials>(`/mcp/apps/${appId}/credentials?environment=${environment}`);
+  const q = new URLSearchParams({ environment, orgId });
+  return request<Credentials>(`/mcp/apps/${appId}/credentials?${q.toString()}`);
 }
 
 /**
- * Rotate credentials for an application
+ * Rotate credentials for an application (orgId required by API)
  */
 export async function rotateCredentials(
   appId: string,
-  environment: "test" | "live"
-): Promise<ApiResponse<Credentials>> {
-  return request<Credentials>(`/mcp/apps/${appId}/credentials/rotate`, {
+  environment: "test" | "live",
+  orgId: string
+): Promise<ApiResponse<RotateCredentialsResponse>> {
+  const q = new URLSearchParams({ orgId });
+  return request<RotateCredentialsResponse>(`/mcp/apps/${appId}/credentials/rotate?${q.toString()}`, {
     method: "POST",
     body: JSON.stringify({ environment }),
   });
@@ -194,28 +206,32 @@ export async function rotateCredentials(
 // =============================================================================
 
 /**
- * Add a redirect URI
+ * Add a redirect URI (orgId required by API)
  */
 export async function addRedirectUri(
   appId: string,
   uri: string,
-  environment: "test" | "live"
+  environment: "test" | "live",
+  orgId: string
 ): Promise<ApiResponse<string[]>> {
-  return request<string[]>(`/mcp/apps/${appId}/redirect-uris`, {
+  const q = new URLSearchParams({ orgId });
+  return request<string[]>(`/mcp/apps/${appId}/redirect-uris?${q.toString()}`, {
     method: "POST",
     body: JSON.stringify({ uri, environment }),
   });
 }
 
 /**
- * Remove a redirect URI
+ * Remove a redirect URI (orgId required by API)
  */
 export async function removeRedirectUri(
   appId: string,
   uri: string,
-  environment: "test" | "live"
+  environment: "test" | "live",
+  orgId: string
 ): Promise<ApiResponse<string[]>> {
-  return request<string[]>(`/mcp/apps/${appId}/redirect-uris`, {
+  const q = new URLSearchParams({ orgId });
+  return request<string[]>(`/mcp/apps/${appId}/redirect-uris?${q.toString()}`, {
     method: "DELETE",
     body: JSON.stringify({ uri, environment }),
   });

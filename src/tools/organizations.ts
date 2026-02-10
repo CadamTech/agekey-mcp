@@ -6,6 +6,7 @@
  * @values DAD - Simple, clear tool definitions
  */
 
+import { z } from "zod";
 import { apiClient } from "../api/client.js";
 import type { ToolResult, Organization } from "../types.js";
 
@@ -58,11 +59,7 @@ export const organizationTools = {
   list_organizations: {
     name: "list_organizations",
     description: "List all AgeKey organizations you have access to. Returns organization details including your role and the number of applications.",
-    inputSchema: {
-      type: "object" as const,
-      properties: {},
-      required: [] as string[],
-    },
+    inputSchema: z.object({}),
     handler: listOrganizations,
   },
 };

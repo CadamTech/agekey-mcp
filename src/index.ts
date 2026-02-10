@@ -17,13 +17,13 @@ import { allTools } from "./tools/index.js";
 import { logConfig } from "./config.js";
 
 // =============================================================================
-// Server Setup
+// Server Setup (McpServer high-level API; do not use deprecated Server)
 // =============================================================================
 
 const mcpServer = new McpServer(
   {
     name: "agekey-mcp-server",
-    version: "0.1.0",
+    version: "1.0.3",
   },
   {
     capabilities: {
@@ -32,14 +32,13 @@ const mcpServer = new McpServer(
   }
 );
 
-// Register each tool with a wrapper that adapts our handler result to MCP format
+// Register each tool via McpServer.registerTool (tool listing & execution are handled by McpServer)
 for (const tool of Object.values(allTools)) {
   mcpServer.registerTool(
     tool.name,
     {
       description: tool.description,
-      // SDK types expect Zod; we use JSON Schema. Cast for compatibility (runtime accepts both).
-      inputSchema: tool.inputSchema as unknown as Parameters<typeof mcpServer.registerTool>[1]["inputSchema"],
+      inputSchema: tool.inputSchema,
     },
     async (args: unknown) => {
       try {

@@ -59,6 +59,16 @@ export interface Credentials {
   appId: string;
   secret?: string;
   authority: string;
+  redirectUris?: string[];
+}
+
+/** Response shape from POST /mcp/apps/:appId/credentials/rotate */
+export interface RotateCredentialsResponse {
+  newAppId: string;
+  newSecret: string;
+  oldAppIdInvalidated: boolean;
+  gracePeriodEndsAt?: string;
+  urgentAction?: string;
 }
 
 export interface Application {

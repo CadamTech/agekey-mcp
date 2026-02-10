@@ -6,8 +6,11 @@
  * @values TEEN - Live mode operations require Admin+ role and confirmation
  */
 
+import { z } from "zod";
 import { apiClient } from "../api/client.js";
 import type { ToolResult } from "../types.js";
+
+const envSchema = z.enum(["test", "live"]);
 
 // =============================================================================
 // Get Credentials
@@ -16,6 +19,7 @@ import type { ToolResult } from "../types.js";
 export interface GetCredentialsInput {
   appId: string;
   environment: "test" | "live";
+  orgId: string;
 }
 
 export interface GetCredentialsResult {
@@ -29,7 +33,7 @@ export interface GetCredentialsResult {
 export async function getCredentials(
   input: GetCredentialsInput
 ): Promise<ToolResult<GetCredentialsResult>> {
-  const response = await apiClient.getCredentials(input.appId, input.environment);
+  const response = await apiClient.getCredentials(input.appId, input.environment, input.orgId);
 
   if (!response.success || !response.data) {
     return {
@@ -42,7 +46,7 @@ export async function getCredentials(
     appId: response.data.appId,
     secret: response.data.secret,
     authority: response.data.authority,
-    redirectUris: [], // Would come from API
+    redirectUris: response.data.redirectUris ?? [],
   };
 
   if (input.environment === "live") {
@@ -62,6 +66,7 @@ export async function getCredentials(
 export interface RotateCredentialsInput {
   appId: string;
   environment: "test" | "live";
+  orgId: string;
   confirmation?: string;
 }
 
@@ -115,7 +120,7 @@ To proceed, confirm with: "${TEST_CONFIRMATION}"`,
     };
   }
 
-  const response = await apiClient.rotateCredentials(input.appId, input.environment);
+  const response = await apiClient.rotateCredentials(input.appId, input.environment, input.orgId);
 
   if (!response.success || !response.data) {
     return {
@@ -125,14 +130,11 @@ To proceed, confirm with: "${TEST_CONFIRMATION}"`,
   }
 
   const result: RotateCredentialsResult = {
-    newAppId: response.data.appId,
-    newSecret: response.data.secret || "sk_...",
-    oldAppIdInvalidated: true,
+    newAppId: response.data.newAppId,
+    newSecret: response.data.newSecret,
+    oldAppIdInvalidated: response.data.oldAppIdInvalidated ?? true,
+    ...(response.data.urgentAction && { urgentAction: response.data.urgentAction }),
   };
-
-  if (isLive) {
-    result.urgentAction = "🚨 Update your PRODUCTION environment NOW to avoid downtime.";
-  }
 
   return {
     success: true,
@@ -147,22 +149,12 @@ To proceed, confirm with: "${TEST_CONFIRMATION}"`,
 export const credentialTools = {
   get_credentials: {
     name: "get_credentials",
-    description: "Get credentials (App ID, Secret, Authority URL) for an AgeKey application. Specify 'test' or 'live' environment.",
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        appId: {
-          type: "string",
-          description: "The application ID",
-        },
-        environment: {
-          type: "string",
-          enum: ["test", "live"],
-          description: "Which environment's credentials to retrieve",
-        },
-      },
-      required: ["appId", "environment"],
-    },
+    description: "Get credentials (App ID, Secret, Authority URL) for an AgeKey application. Specify 'test' or 'live' environment. Requires orgId (the organization that owns the app).",
+    inputSchema: z.object({
+      appId: z.string().describe("The application ID"),
+      environment: envSchema.describe("Which environment's credentials to retrieve"),
+      orgId: z.string().describe("The organization ID that owns the application"),
+    }),
     handler: getCredentials,
   },
 
@@ -174,25 +166,12 @@ For TEST mode: Requires Member role or higher.
 For LIVE mode: Requires Admin role or higher AND explicit confirmation phrase.
 
 ⚠️ WARNING: Old credentials are invalidated immediately!`,
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        appId: {
-          type: "string",
-          description: "The application ID",
-        },
-        environment: {
-          type: "string",
-          enum: ["test", "live"],
-          description: "Which environment's credentials to rotate",
-        },
-        confirmation: {
-          type: "string",
-          description: "Confirmation phrase (required for live mode). Use 'ROTATE LIVE CREDENTIALS' for live, 'ROTATE TEST CREDENTIALS' for test.",
-        },
-      },
-      required: ["appId", "environment"],
-    },
+    inputSchema: z.object({
+      appId: z.string().describe("The application ID"),
+      environment: envSchema.describe("Which environment's credentials to rotate"),
+      orgId: z.string().describe("The organization ID that owns the application"),
+      confirmation: z.string().optional().describe("Confirmation phrase (required for live mode). Use 'ROTATE LIVE CREDENTIALS' for live, 'ROTATE TEST CREDENTIALS' for test."),
+    }),
     handler: rotateCredentials,
   },
 };

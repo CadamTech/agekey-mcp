@@ -7,6 +7,7 @@
  * @values DAD - Helpful utilities for developers
  */
 
+import { z } from "zod";
 import type {
   ToolResult,
   DecodedJWT,
@@ -306,7 +307,7 @@ params = {
     "claims": '{"age_thresholds":[18,21]}'
 }
 
-auth_url = "https://api.test.agekey.org/v1/oidc/use?" + urlencode(params)`,
+auth_url = "https://api-test.agekey.org/v1/oidc/use?" + urlencode(params)`,
       callback: `import jwt
 
 # Verify state matches
@@ -324,7 +325,7 @@ if claims['age_thresholds'].get('18'):
       redirect: `import requests
 
 response = requests.post(
-    "https://api.test.agekey.org/v1/oidc/create/par",
+    "https://api-test.agekey.org/v1/oidc/create/par",
     data={
         "client_id": "{{clientId}}",
         "client_secret": "{{clientSecret}}",
@@ -335,7 +336,7 @@ response = requests.post(
 )
 
 request_uri = response.json()["request_uri"]
-auth_url = f"https://api.test.agekey.org/v1/oidc/create?client_id={{clientId}}&request_uri={request_uri}"`,
+auth_url = f"https://api-test.agekey.org/v1/oidc/create?client_id={{clientId}}&request_uri={request_uri}"`,
       callback: `if "error" in params:
     if params["error"] == "access_denied":
         # User declined
@@ -363,7 +364,7 @@ params := url.Values{
     "claims":        {string(claimsJSON)},
 }
 
-authURL := "https://api.test.agekey.org/v1/oidc/use?" + params.Encode()`,
+authURL := "https://api-test.agekey.org/v1/oidc/use?" + params.Encode()`,
       callback: `// Verify state
 if params.Get("state") != session.Get("agekey_state") {
     return errors.New("state mismatch")
@@ -461,7 +462,7 @@ use serde_json::json;
 
 const CLIENT_ID: &str = "{{clientId}}";
 const REDIRECT_URI: &str = "{{redirectUri}}";
-const AUTHORITY: &str = "https://api.test.agekey.org/v1/oidc/use";
+const AUTHORITY: &str = "https://api-test.agekey.org/v1/oidc/use";
 
 fn generate_token() -> String {
     let bytes: [u8; 32] = rand::thread_rng().gen();
@@ -530,8 +531,8 @@ use chrono::Utc;
 const CLIENT_ID: &str = "{{clientId}}";
 const CLIENT_SECRET: &str = "{{clientSecret}}";
 const REDIRECT_URI: &str = "{{redirectUri}}";
-const PAR_ENDPOINT: &str = "https://api.test.agekey.org/v1/oidc/create/par";
-const AUTH_ENDPOINT: &str = "https://api.test.agekey.org/v1/oidc/create";
+const PAR_ENDPOINT: &str = "https://api-test.agekey.org/v1/oidc/create/par";
+const AUTH_ENDPOINT: &str = "https://api-test.agekey.org/v1/oidc/create";
 
 async fn initiate_create_agekey(dob: &str) -> Result<String, reqwest::Error> {
     let auth_details = json!({
@@ -622,67 +623,31 @@ export const utilityTools = {
   decode_jwt: {
     name: "decode_jwt",
     description: "Decode and explain an AgeKey JWT token. Shows header, payload, expiration status, and human-readable explanation of age verification results.",
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        token: {
-          type: "string",
-          description: "The JWT token to decode",
-        },
-      },
-      required: ["token"],
-    },
+    inputSchema: z.object({
+      token: z.string().describe("The JWT token to decode"),
+    }),
     handler: decodeJwt,
   },
 
   explain_error: {
     name: "explain_error",
     description: "Get a detailed explanation of an AgeKey/OIDC error code including common causes, solutions, and documentation links.",
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        errorCode: {
-          type: "string",
-          description: "The error code (e.g., 'state_mismatch', 'access_denied', 'invalid_request')",
-        },
-        errorDescription: {
-          type: "string",
-          description: "Optional error description from the callback",
-        },
-      },
-      required: ["errorCode"],
-    },
+    inputSchema: z.object({
+      errorCode: z.string().describe("The error code (e.g., 'state_mismatch', 'access_denied', 'invalid_request')"),
+      errorDescription: z.string().optional().describe("Optional error description from the callback"),
+    }),
     handler: explainError,
   },
 
   get_code_sample: {
     name: "get_code_sample",
     description: "Get integration code samples for AgeKey in various languages. Optionally pre-fill with your app credentials.",
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        appId: {
-          type: "string",
-          description: "Optional application ID to pre-fill in the code sample",
-        },
-        flow: {
-          type: "string",
-          enum: ["use", "create"],
-          description: "'use' for age verification, 'create' for storing verification",
-        },
-        step: {
-          type: "string",
-          enum: ["redirect", "callback"],
-          description: "'redirect' for initiating the flow, 'callback' for handling the response",
-        },
-        language: {
-          type: "string",
-          enum: ["typescript", "python", "go", "java", "rust"],
-          description: "Programming language for the code sample",
-        },
-      },
-      required: ["flow", "step", "language"],
-    },
+    inputSchema: z.object({
+      appId: z.string().optional().describe("Optional application ID to pre-fill in the code sample"),
+      flow: z.enum(["use", "create"]).describe("'use' for age verification, 'create' for storing verification"),
+      step: z.enum(["redirect", "callback"]).describe("'redirect' for initiating the flow, 'callback' for handling the response"),
+      language: z.enum(["typescript", "python", "go", "java", "rust"]).describe("Programming language for the code sample"),
+    }),
     handler: getCodeSample,
   },
 };
